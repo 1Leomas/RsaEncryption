@@ -1,20 +1,21 @@
-﻿namespace RsaEncryption;
+﻿using System.Numerics;
+
+namespace RsaEncryption;
 
 public sealed class RsaKeys
 {
     private readonly int _min = 100;
     private readonly int _max = 1000;
 
-    private int _p;
-    private int _q; 
-    private int _n;
-    private int _phi;
-    private int _e;
-    private int _d;
+    public int P;
+    public int Q;
+    public int N;
+    public int Phi;
+    public int E;
+    public int D;   
 
-    public int PublicKey => _e;
-    public int PrivateKey => _d;
-    public int N => _n;
+    public int PublicKey => E;
+    public int PrivateKey => D;
 
     public RsaKeys()
     {   
@@ -30,50 +31,43 @@ public sealed class RsaKeys
     public void Generate()
     {   
         // (1)
-        _p = GetPrimeNumber();
-        _q = GetPrimeNumber();
+        P = GetPrimeNumber();
+        Q = GetPrimeNumber();
 
-        while (_p == _q)
+        while (P == Q)
         {
-            _p = GetPrimeNumber();
-            _q = GetPrimeNumber();
+            P = GetPrimeNumber();
+            Q = GetPrimeNumber();
         }
 
-        Console.WriteLine($"p = {_p}");
-        Console.WriteLine($"q = {_q}");
-
         // (2)
-        _n = _p * _q;
-        Console.WriteLine($"n = {_n}");
-
+        N = P * Q;
         // (3)
-        _phi = (_p - 1) * (_q - 1);
-        Console.WriteLine($"phi = {_phi}");
-
+        Phi = (P - 1) * (Q - 1);
         // (4)
-        _e = GetE(_phi);
-        Console.WriteLine($"e = {_e}");
-
+        E = GetE(Phi);
         // (5)
-        _d = GetD(_e, _phi);
-        Console.WriteLine($"d = {_d}");
+        D = GetD(E, Phi);
     }
 
     int GetD(int e, int phi)
     {
-        var d = 1;
+        BigInteger d = 1;
         while (true)
         {
+            // cautam asa un d astfel incat d * e % phi == 1
             if (d * e % phi == 1)
-                return d;
+                return (int)d;
             d++;
         }
     }
 
     int GetE(int phi)
     {
+        // 1 < e < phi
         var e = GetRandomNumber(2, phi);
 
+        // e si phi trebuie sa fie coprime
         while (Cmmdc(e, phi) != 1)
             e = GetRandomNumber(2, phi);
 
@@ -91,8 +85,6 @@ public sealed class RsaKeys
         }
         return e;
     }
-
-
         
     int GetPrimeNumber()
     {
